@@ -1,0 +1,166 @@
+---
+title: "HW1"
+author: "Ines Pancorbo"
+date: "9/8/2020"
+output: pdf_document
+---
+
+# Exercise 1.19
+
+```{r}
+data <- read.table("GPA.txt")
+colnames(data) <- c("GPA", "ACT")
+head(data)
+```
+
+Let us first plot our data.
+
+```{r}
+library(ggplot2)
+
+ggplot(data, aes(ACT, GPA)) +
+  geom_point()
+```
+
+**a. Obtain the least squares estimates of $\beta_0$ and $\beta_1$, and state the estimated regression function.**
+
+```{r}
+model <- lm(GPA~ACT, data=data)
+```
+
+```{r}
+model$coefficients
+```
+Given the above, estimates of $\beta_0$ and $\beta_1$ are $2.11404929$ and $0.03882713$, respectively. 
+
+And so, the estimated regression function is:
+$$\hat{Y_i} = 2.11404929 + 0.03882713X_i$$
+
+**b. Plot the estimated regression function and the data. Does the estimated regression function appear to fit the data well.**
+
+```{r}
+ggplot(data, aes(ACT, GPA)) +
+  geom_point() +
+  geom_smooth(method=lm, se=TRUE)
+```
+
+```{r}
+summary(model)
+```
+
+The estimated regression does not seem to fit the data well. In addition, we can see that the R-squared is $0.07262$, i.e., $7.262\%$ of the total variation in the GPA at the end of freshmen year can be explained by ACT.
+
+**c. Obtain a point estimate of the mean freshman GPA for students with ACT test score X=30.**
+
+```{r}
+newdata <- data.frame(ACT=30)
+predict(model, newdata=newdata)
+```
+
+As seen above, a point estimate for the mean freshman GPA for students with ACT test score of $30$ is $3.278863$.
+
+Just as an extra, and to try out the lecture/notes material, let us also find a $95\%$ confidence interval for the mean freshman GPA for students with ACT=$30$.
+
+```{r}
+predict <- predict(model, newdata=newdata, interval='confidence', se=TRUE)
+predict$fit
+```
+
+And so the $95\%$ interval is $(3.104246, 3.453481)$. We can also get the standard error for $\hat{Y}_{ACT=30}$ using:
+
+```{r}
+predict$se.fit
+```
+
+**d. What is the point estimate of the change in the mean response when the entrance test score increases by one point?**
+
+This would, by definition, be the slope of the regression line:
+
+```{r}
+model$coefficients[2]
+```
+
+# Exercise 2.4
+
+**a. Obtain a 99 percent confidence interval for $\beta_1$. Interpret your confidence interval. Does it include 0? Why might the director of admissions be interested in whether the confidence interval includes 0?**
+
+From lecture, we know that the sampling distribution of the point estimator $b_1$ has a normal distribution with mean $\beta_1$ and variance $\frac{\sigma^2}{\sum_{i=1}^{n}(X_i-\bar{X})}$. An unbiased estimator for $\frac{\sigma^2}{\sum_{i=1}^{n}(X_i-\bar{X})}$ is $\frac{MSE}{\sum_{i=1}^{n}(X_i-\bar{X})}$. And so, 
+$$\frac{b_1-\beta_1}{\sqrt{\frac{MSE}{\sum_{i=1}^{n}(X_i-\bar{X})}}} \sim t(n-2)$$
+Therefore,
+
+$$\mathbb{P}(t(\frac{\alpha}{2};n-2) \leq \frac{b_1-\beta_1}{\sqrt{\frac{MSE}{\sum_{i=1}^{n}(X_i-\bar{X})}}} \le t(1-\frac{\alpha}{2};n-2)) = 1- \alpha$$
+Now, considering the above, the $(1-\alpha)$ percent confidence limits for $\beta_1$ are:
+$$b_1 \pm t(1-\frac{\alpha}{2};n-2) \sqrt{\frac{MSE}{\sum_{i=1}^{n}(X_i-\bar{X})}}$$
+Now $b_1$ and the standard error for $b_1$ can be obtained via the summary command and are $0.03883$ and $0.01277$, respectively. 
+
+```{r}
+summary(model)$coefficient[2,]
+```
+
+Making use of the t-table we have all the information we need to get the confidence interval. A faster way would be to make use of the command confint as seen below.
+
+```{r}
+round(confint(model, parm="ACT", level=0.99), 4)
+```
+
+A $99$ percent confidence interval for the parameter $\beta_1$ is $(0.0054, 0.0723)$. This means that we are $99\%$ confident that $\beta_1$ is between the lower and upper calculated values of $0.0054$ and $0.0723$, respectively. In regards to the problem, with confidence coefficient $0.95$, we estimate that the mean GPA at the end of freshmen year increases by somewhere between $0.0054$ and $0.0723$ GPA points for each additional point increase in ACT score. 
+
+The confidence interval does not contain the value $0$, indicating that at a $0.01$ level of significance, the data in our sample favors $\beta_1 \ne 0$. The director of admissions might be interested in this as it provides evidence supporting a linear statistical association between GPA at the end of freshmen year and ACT (he/she can keep this in mind when making admission decisions).
+
+**b. Test, using the test statistic $t^*$, whether or not a linear association exists between student's ACT score and GPA at the end of the freshmen year. Use a level of significance of 0.01. State the alternatives, decision rule, and conclusions.**
+
+We want to test the null hypothesis that there is no linear statistical association between ACT and GPA at the end of freshmen year. In formal terms, our null and alternative hypotheses are:
+
+$$H_0: \beta_1 = 0$$
+$$H_a: \beta_1 \ne 0$$
+
+At a $0.01$ $\alpha$ level of significance, the decision rule is to reject $H_0$ in favor of $H_a$ if $|t^*| \ge t(1-\frac{\alpha}{2}; n-2) = t(0.995; 118)$ and fail to reject $H_0$ if $|t^*| < t(0.995; 118)$.
+
+The test statistic is (with respective values obtained via the summary command as explained above),
+
+$$t^*=\frac{b_1}{\sqrt{\frac{MSE}{\sum_{i=1}^{n}(X_i-\bar{X})}}} = \frac{0.03883}{0.01277} \approx 3.04$$
+We can also get the t statistic directly as so:
+
+```{r}
+summary(model)$coefficient[2,'t value']
+```
+
+Now using a t-table or an R command, 
+
+```{r}
+qt(0.995, df=118)
+```
+
+$$t(1-\frac{\alpha}{2}; n-2)=t(1-\frac{0.01}{2}; n-2)=t(0.995; 118) =  2.618137$$
+Since $|t^*| = 3.039777 \ge  2.618137 = t(0.995; 118)$ we reject $H_0$ of ACT and GPA at the end of freshmen year not having a linear statistical association and conclude that $\beta_1 \ne 0,$ i.e., we have evidence to support a linear statistical association between GPA at the end of freshmen year and ACT.
+
+**c. What is the P-value of your test in part (b)? How does it support the conclusion reached in part (b)?**
+
+We can find the p-value of the test as so:
+
+```{r}
+# calculate p-value for t stat:  (b_1 - 0) / std err
+
+# slope parameter estimate
+b1 <- model$coefficients[2]
+
+# standard error of slope estimate
+b1_se <-summary(model)$coefficients[2,"Std. Error"] 
+
+#t statistic 
+t_b1 <- b1/b1_se
+
+# calculate two-sided p-value, degrees of freedom = n - 2
+pval <- 2*pt(abs(t_b1), df=dim(data)[1]-2, lower.tail=FALSE)
+names(pval) <- NULL
+pval
+```
+
+We could also get the p-value in the following more direct way:
+
+```{r}
+summary(model)$coefficient[2,'Pr(>|t|)']
+```
+
+Our p-value for the estimated ACT coefficient is well below our $1\%$ threshold; So we reject the null hypothesis and conlcude that we have evidence to support a linear statistical association between GPA at the end of freshmen year and ACT. In other words, the data in our sample favor $H_a$ over $H_0$. The conclusion reached via the p-value approach is the same as the t-statistic approach (what was done in part (b)).
+
