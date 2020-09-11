@@ -62,9 +62,9 @@ pureErrorAnova(model1) # to get a regular anova table just call anova, not in al
 
 ---
 
-# Testing Assumptions of Linear Regression
+# Other
 
-## Are the error terms normally distributed? 
+## Linear Regression Assumption: Are the error terms normally distributed? 
 
 1. Testing normality of error terms via Shapiro Wilk.
 
@@ -83,7 +83,7 @@ ols_plot_resid_qq(model1)
 
 3. Histograms, box plots, dot plots.
 
-## Do the error terms have constant variance?
+## Linear Regression Assumption: Do the error terms have constant variance?
 
 1. The Breusch-Pagan test.
 
@@ -99,7 +99,7 @@ library(olsrr)
 ols_plot_resid_fit(model1)
 ```
 
-## Are the error terms independent?
+## Linear Regression Assumption: Are the error terms independent?
 
 1. residual vs. fitted or predictor (pattern?)
 
@@ -117,5 +117,10 @@ library(car)
 durbinWatsonTest(model1)
 ```
 
+## Lack of Fit Test
 
-
+We want to fail to reject the null hypothesis, $H_o: \hat{\mu}$
+```
+library(alr3)
+pureErrorAnova(model1)
+```
