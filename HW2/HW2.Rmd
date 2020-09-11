@@ -1,0 +1,396 @@
+---
+title: "HW2"
+author: "Ines Pancorbo"
+date: "9/15/2020"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Exercise 2.23
+
+**a. Set up the ANOVA table**
+
+```{r}
+data <- read.table("GPA.txt", header=FALSE)
+colnames(data) <- c("GPA", "ACT")
+head(data)
+```
+
+```{r}
+model <- lm(GPA ~ ACT, data=data)
+anova(model)
+```
+
+**b. What is estimated by MSR in your ANOVA table? By MSE? Under what condition do MSR and MSE estimate the same quantity?**
+
+Error Mean of Squares (MSE) is the Error Sum of Squares (SSE), which measures the variation in the observations' GPA scores still present when the predictor variable ACT scores is taken into account, divided by the degrees of freedom. 
+
+$$MSE=\frac{SSE}{n-2}=\frac{\sum_{i=1}^{n}(Y_i-\hat{Y_i})}{n-2}=\frac{\sum_{i=1}^{120}(Y_i-\hat{Y_i})}{118}$$ 
+as $n=120.$
+
+Regression Mean of Squares (MSR) is the Regression Sum of Squares (SSR), which measures the total variation in the observations' GPA score that is explained by the regression line, divided by the degrees of freedom.
+
+$$MSR=\frac{SSR}{1}=\sum_{i=1}^{120}(\hat{Y_i}-\bar{Y})$$ 
+
+According to the ANOVA table $MSR=3.5878$ and $MSE=0.3883.$
+
+Since $E[MSE]=\sigma^2$ and $E[MSR]=\sigma^2+\beta_1^2 \sum_{i=1}^{n}(X_i-\bar{X})^2$ this suggests that when $\beta_1=0$, $E[MSE]=E[MSR]$, and when $\beta_1 \ne 0$, $E[MSE] < E[MSR].$ So when $\beta_1=0$, we should expect that $MSR=MSE$, i.e., both $MSE$ and $MSR$ estimate the same quantity. 
+
+**c. Conduct an F test of whether or not $\beta_1 = 0$. Control the $\alpha$ risk at $0.01$. State the alternatives, decision rule, and conclusion.**
+
+We are testing the null hypothesis that there is no linear statistical association between GPA at the end of freshman year and ACT.
+
+$$H_0: \beta_1=0$$
+$$H_a: \beta_1 \ne 0$$
+
+The test statistic is $F^*=\frac{MSR}{MSE} \sim F_{(1, 118)}$.
+
+The decision rule is:
+
+- If $F^* \le F(1-\alpha; 1, 118)$ conclude $H_0.$
+- If $F^* > F(1-\alpha; 1, 118)$ conclude $H_a.$
+
+Or alternatively, 
+
+- If p value $\ge \alpha$ conclude $H_0.$
+- If p value $< \alpha$ conclude $H_a.$
+
+The p value is:
+
+```{r}
+anova(model)$"Pr(>F)"[1]
+```
+
+Since p value $=0.002916604 < 0.01=\alpha$ we reject $H_0$ and conclude $H_a$, i.e., we conclude there is a linear statistical association between GPA at the end of freshman year and ACT.
+
+Using the test statistic approach we reach the same conclusion:
+
+```{r}
+alpha <- 0.01
+n <- dim(data)[1]
+F.test.gpa <- qf((1-alpha),1,n-2)
+F.test.gpa
+```
+
+```{r}
+anova(model)$"F value"[1]
+```
+
+**d. What is the absolute magnitude of the reduction in the variation of Y when X is introduced into the regression model? What is the relative reduction? What is the name of the latter measure?**
+
+By the definition presented above, the absolute magnitude of the reduction in the variation of the observations $Y_i$ (GPA scores) when the predictor variable $X$ (ACT scores) is introduced into the regression model is the regression sum of squares (SSR). The relative reduction would be $SSR$ divided by $SSTO$, the total variation in the observations $Y_i$ (GPA scores) when the predictor variable $X$ (ACT scores) is not taken into account. The name of this relative reduction is the coefficient of determination, $R^2$.
+
+```{r}
+R2 <- summary(model)$r.squared
+R2 
+```
+
+which is the same as,
+
+```{r}
+anova(model)$"Sum Sq"[1]/(anova(model)$"Sum Sq"[1]+anova(model)$"Sum Sq"[2])
+```
+
+**e. Obtain $r$ and attach the appropriate sign.**
+
+The coefficient of correlation, $r$, is equal to $\sqrt{R^2}$.
+
+```{r}
+sqrt(R2)
+```
+
+Since the regression line has a positive slope as seen below,
+
+```{r}
+summary(model)$coefficient[2, "Estimate"]
+```
+
+$r=0.2694818.$
+
+**f. Which measure, $R^2$ or $r$, has the more clear-cut operational interpretation? Explain.**
+
+$R^2$ has the more clear-cut operational interpretation as it is the ratio of $SSR$ and $SSTO$ thus, measuring the percentage of the variation in the observations $Y_i$ explained by the model/regression line (consequently, $1-R^2$ measures the percentage of the variation in the observations $Y_i$ that remain unexplained by the regression line). $r$ is the squared root of $R^2$, and this has a less clear operational interpretation. 
+
+
+# Exercise 3.3 (a-e inclusive)
+
+**a. Prepare a box plot for the ACT scores $X_i$. Are there any noteworthy features in this plot?**
+
+```{r}
+library(ggplot2)
+
+ggplot(data, aes(x=ACT)) +
+  geom_boxplot()
+```
+
+From the boxplot we can see that there are no outliers but the median is not exactly in the middle of the IQR, letting us know that the ACT scores are slightly skewed.
+
+**b. Prepare a dot plot of the residuals. What information does this plot provide?**
+
+A dotplot of the residuals is helpful for obtaining summary information about the symmetry and distribution shape of the residuals as well as information about possible outliers. 
+
+Informally, we can study the normality of the error terms by examining the distribution of the residuals (the sample size, however, should be reasonably large for this graphical tool and others to convey reliable information). 
+
+```{r}
+residuals <- model$residuals
+p <- ggplot(data, aes(x=residuals)) +
+  geom_dotplot()
+p
+```
+
+From the dotplot, we can see that the distribution of the residuals is slightly left-skewed, suggesting a departure from normality. Some outliers present as well in the far left of the plot.
+
+**c. Plot the residuals $e_i$ against the fitted values $\hat Y_i.$ What departures from regression model can be studied from this plot? What are your findings?**
+
+
+```{r}
+library('olsrr')
+ols_plot_resid_fit(model)
+```
+
+From this plot, one can study:
+
+- Whether a linear regression function is appropriate or not
+- Whether the errors terms have constant variance
+
+From the plot, one can observe that the residuals fall within a horizontal band centered around 0, displaying no systematic tendencies to be positive or negative (some outliers are present but overall, no trends/patterns). This indicates that a regression function seems appropriate and the error terms seem to have constant variance. 
+
+
+**d. Prepare a normal probability plot of the residuals. Also obtain the coefficent of correlation between the ordered residuals and their expected values under normality. Test the reasonableness of the normality assumption here using Table B.6 and $\alpha=0.05.$ What do you conclude?**
+
+```{r}
+ols_plot_resid_qq(model)
+```
+
+The Q-Q plot points to a violation of normality given the tails.
+
+
+```{r}
+StdErr <- summary(model)$sigma
+n <- nrow(data)
+ExpVals <- sapply(1:n, function(k) StdErr * qnorm((k-.375)/(n+.25)))
+cor(ExpVals, sort(residuals))
+```
+
+To conclude at the $\alpha=0.05$ level that the residuals are normally distributed, the correlation must exceed the corresponding critical value. The table in the book only goes to $n=100$ and we have $n=120.$ However, since the smallest critical value at $n = 100$ is $0.979$ at $\alpha = 0.005$, and critical values get larger as $n$ gets larger, we conclude that we would not reject the null hypothesis that the error terms are not normally distributed, since our correlation is smaller than $0.979$.
+
+We can also use the Shapiro Wilk test:
+
+```{r}
+shapiro.test(residuals)
+```
+
+At any reasonable significance level ($\alpha \in \{0.1, 0.05, 0.01, 0.001 \}$) the Shapiro Wilk test concludes that the normality assumption is violated, i.e., the error terms are not normally distributed thus, concluding the same as all of the above.
+
+**e. Condict the Brown-Forsythe test to determine whether or not the error variance varies with the level of $X$. Divide the data into the two groups, $X<26, X \ge 26,$ and use $\alpha=0.01.$ State the decision rule and conclusion. Does your conclusion support your preliminary findings in part (c)?**
+
+The Brown-Forsythe test is a two-sample t-test to determine if the mean of absolute deviations for one group, say for those belonging to $X \ge 26$, differs significantly from the mean of absolute deviations of the other group, $X < 26.$
+
+The absolute deviations are defined as $d_ig =|e_{ig} - \text{median}(e_g)|$ where $e_{ig}$ is the ith residual belonging to group $g$ and $\text{median}(e_g)$ is the median of the residuals belonging to group $g$. Since we only have two groups $g=1$ or $g=2$.
+
+Now, $\bar{d_1}$ and $\bar{d_2}$ are the sample means for group $1$ and $2$, respectively, and estimators of the true means $d_1$ and $d_2$, respectively.
+
+Consequently, the hypothesis test is:
+
+$$H_0: d_1-d_2=0$$
+$$H_a: d_1-d_2 \ne 0$$
+
+As a note, we can apply this test since the sample size is $120$, large enough so that the dependencies among the residuals can be ignored.
+
+```{r}
+# grouping 
+# group 1: < 26
+# group 2: >= 26
+data$group <- ifelse(data$ACT < 26, 1, 2)
+data$residuals <- residuals
+```
+
+```{r}
+library(tidyverse)
+# subtracting residuals from corresponding residual median
+data.bf.test <- data %>%
+  group_by(group) %>%
+  mutate(d = abs(residuals - median(residuals)))
+head(data.bf.test)
+```
+
+Let's look at a boxplot of these absolute deviations from the median by group.
+```{r}
+ggplot(data.bf.test, aes(x = as.factor(group), y = d, color = as.factor(group))) +
+  geom_boxplot() +
+  stat_summary(fun = mean, geom = "point", shape = 5, size = 2) +
+  labs(x = "Group", y = "Deviations") +
+  theme(legend.position = "none")
+```
+
+Now let's get the test statistic, 
+
+$$t^*_{bf}=\frac{\bar{d_1}-\bar{d_2}}{s\sqrt{\frac{1}{n_1}+\frac{1}{n_2}}}$$
+with $s^2=\frac{\sum[(d_{i1}-\bar{d_1})^2+ (d_{i2}-\bar{d_2})^2]}{n-2}$ and $t_{bf}^* \sim t_{(n-2)}$.
+
+```{r}
+# getting n, n1, n2, s, and the means d.bar.1 and d.bar.2
+n <- nrow(data)
+
+data.bf.test <- data.bf.test %>%
+  group_by(group) %>%
+  mutate(dev=(d-mean(d))^2)
+
+s <- sqrt(sum(data.bf.test$dev)/(n-2))
+
+summary <- data.bf.test %>%
+  group_by(group) %>%
+  summarise(mean.group=mean(d),
+            n.group=n())
+
+n1 <- summary$n.group[1]
+n2 <- summary$n.group[2]
+d.bar.1 <- summary$mean.group[1]
+d.bar.2 <- summary$mean.group[2]
+
+# getting test statistic
+t <- (d.bar.1-d.bar.2)/(s*sqrt(1/n1+1/n2))
+t
+```
+
+The decision rule is:
+
+- If $|t_{bf}^*| \le t(1-\alpha/2; n-2)$ conclude $H_0$, i.e., error terms have constant variance. 
+- If $|t_{bf}^*| > t(1-\alpha/2; n-2)$ conclude $H_a$, i.e., error terms do not have constant variance. 
+
+```{r}
+# getting t(1-\alpha/2; n-2)
+alpha <- 0.01
+qt(1-alpha/2, n-2, lower.tail = TRUE)
+```
+
+Since $|t_{bf}^*| = 0.8967448 < 2.618137= t(1-\alpha/2; n-2)$ we conclude $H_0$, i.e., error terms have constant variance. Thus, supporting the conclusion reached in part (c) with the residuals vs. fitted values plot.
+
+The same could have been done with:
+
+```{r}
+t.test(filter(data.bf.test, ACT<26)$d, filter(data.bf.test, ACT>=26)$d,
+       alternative = "two.sided", var.equal = TRUE, conf.level=0.99)
+```
+
+# Exercise 3.17
+
+**A marketing researcher studied the annual sales of a product that had been introduced 10 years ago. The data are as follows, where $X$ is the year and $Y$ is the sales in thousands.**
+
+```{r}
+x <- seq(0, 9)
+y <- c(98, 135, 162, 178, 221, 232, 283, 300, 374, 395)
+data <- data.frame(x=x, y=y)
+```
+
+**a. Prepare a scatter plot of the data. Does a linear relation appear adequate here?**
+
+```{r}
+ggplot(data, aes(x=x, y=y)) +
+  geom_point() +
+  labs(x = "Sales Year", y = "Sales (in thousands)")
+```
+
+From the scatterplot, a linear relation appears adequate. 
+
+**b. Use the Box-Cox procedure and standardization to find an appropriate power transformation of Y. Evaluate SSE for $\lambda=-0.2, -0.1, 0, 0.1, 0.2.$ What transformation of Y is suggested?**
+
+
+```{r}
+library(MASS)
+model <- lm(y~x, data)
+boxcox <- boxcox(model, lambda=c(0.3, 0.4, 0.5, 0.6, 0.7), plotit=FALSE)
+lambda <- boxcox$x
+logl <- boxcox$y
+optimal_lambda <- lambda[order(logl, decreasing=TRUE)][1]
+optimal_lambda
+```
+
+Out of $\lambda=0.3, 0.4, 0.5, 0.6, 0.7$ the one resulting in the highest log likelihood is $\lambda=0.5.$
+If we wanted to consider more possible values for $\lambda:$
+
+```{r}
+boxcox2 <- boxcox(model, lambda=seq(-5,5,0.1))
+lambda2 <- boxcox2$x
+logl2 <- boxcox2$y
+optimal_lambda2 <- lambda2[order(logl2, decreasing=TRUE)][1]
+optimal_lambda2
+```
+
+Let's evaluate SSE for $\lambda=0.3, 0.4, 0.5, 0.6, 0.7.$
+
+```{r}
+# standardizing the transformations so we can make sure SSE is not
+# influenced by lambda and thus, make comparisons
+standardize <- function(lambda){
+  if(lambda == 0){
+    return(prod(y)^(1/length(y))*log(y))
+    
+  }
+  else{
+    return((1/(lambda*(prod(y)^(1/length(y)))^(lambda-1)))*(y^lambda-1))
+  }
+}
+
+y_transform <- lapply(lambda, standardize)
+
+# let's regress the y_transform on X and get the SSE
+sse <- function(i){
+  return(anova(lm(y_transform[[i]]~x))$"Sum Sq"[2])
+}
+
+# table with lambda values and corresponding SSE values
+SSE <- lapply(seq(1, length(lambda)), sse)
+SSE.table <- cbind(lambda, SSE)
+SSE.table
+```
+
+The optimal $\lambda$ value corresponds to the minimum SSE value ($\lambda=0.5$), confirming what we found above via maximum likelihood. So the suggested transformation of Y is $Y'=Y^{0.5}=\sqrt Y$.
+
+**c. Use the transformation $Y^{'}= \sqrt{Y}$ and obtain the estimated linear regression function for the transformed data.**
+
+```{r}
+data_transformed <- data.frame(x=x, y=sqrt(y))
+model <- lm(y ~ x, data=data_transformed)
+summary(model)
+```
+Assuming the transformation $Y'=\sqrt Y$, we have that the estimated linear regression function for the transformed data is:
+
+$$\hat{Y'}=10.26093-1.07629X.$$
+
+**d. Plot the estimated regression line and the transformed data. Does the regression line appear to be a good fit to the transformed data?**
+
+```{r}
+ggplot(data_transformed, aes(x, y)) + 
+  geom_point() + 
+  geom_smooth(method=lm, se=TRUE)
+```
+
+The linear regression appears to be a good fit for the transformed data.
+
+**e. Obtain the residuals and plot them against the fitted values. Also prepare a normal probability plot. What do your plots show?**
+
+
+```{r}
+ols_plot_resid_fit(model)
+```
+
+```{r}
+ols_plot_resid_qq(model) 
+```
+
+The residuals in the residuals vs. fitted values plot fall within a horizontal band centered around 0. It seems like there is no pattern/trend, and the assumption of equal variance is not violated.
+
+Informally, the Q-Q plot helps us determine if the error terms are normally distributed by looking at the distribution of the residuals. The points do not perfectly line up along the line y=x; however they appear to generally follow this line; therefore, it seems the error terms are normally distributed.
+
+**f. Express the estimated regression function in the original units.**
+
+Since $Y'=\sqrt Y$ was the transformation, we have that the estimated regression function in the original units is:
+
+$$\hat Y=(10.26093-1.07629X)^2.$$
+
