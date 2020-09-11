@@ -8,10 +8,10 @@
 ggplot(data, aes(x=x, y=y)) + geom_point() + geom_smooth(method=lm, col='magenta')
 ```
 
-**Examining the predictor variable with a boxplot**
+**Examining the predictor variable, X, with a boxplot**
 
 ```
-ggplot(data, aes(x=x, y=y)) + geom_boxplot()
+ggplot(data, aes(x=x)) + geom_boxplot()
 ```
 
 **Examining the predictor variable with a histogram**
@@ -22,7 +22,7 @@ ggplot(data, aes(x=x)) + geom_histogram(aes(y=..desnity..), binwidth=7) + geom_d
 
 ## library(olsrr)
 
-Produces nice graphics 
+Produces nice graphics for ordinary linear regression OLS. 
 
 **Residual qq-plot**
 
@@ -34,12 +34,6 @@ ols_plot_resid_qq(model1)
 
 ```
 ols_plot_resid_fit(model1)
-```
-
-**Testing normality of residuals**
-
-```
-shapiro.test(residuals(model1))
 ```
 
 ## library(car)
@@ -66,3 +60,74 @@ This package consists of data files and a few functions used in the textbook S. 
 pureErrorAnova(model1) # to get a regular anova table just call anova, not in alr3 package
 ```
 
+---
+
+# Other
+
+## Linear Regression Assumption: Are the error terms normally distributed? 
+
+1. Testing normality of error terms via Shapiro Wilk.
+
+We want to fail to reject the null to conclude errors are normally distributed. 
+
+```
+shapiro.test(residuals(model1))
+```
+
+2. Residual qq-plot.
+
+```
+library(olsrr)
+ols_plot_resid_qq(model1) 
+```
+
+3. Histograms, box plots, dot plots.
+
+## Linear Regression Assumption: Do the error terms have constant variance?
+
+1. The Breusch-Pagan test.
+
+```
+library(car)
+ncvTest(model1)
+```
+
+2. residual vs. fitted or predictor (megaphone trend).
+
+```
+library(olsrr)
+ols_plot_resid_fit(model1)
+```
+
+## Linear Regression Assumption: Are the error terms independent?
+
+1. residual vs. fitted or predictor (pattern?)
+
+```
+library(olsrr)
+ols_plot_resid_fit(model1)
+```
+
+2. Durbin-Watson Test. 
+
+We want to fail to reject the null to conclude independence.
+
+```
+library(car)
+durbinWatsonTest(model1)
+```
+
+## Lack of Fit Test
+
+We want to fail to reject the null hypothesis.
+
+```
+library(alr3)
+pureErrorAnova(model1)
+```
+## Transformations on Y: Box Cox Power Transformation
+
+```
+library("EnvStats")
+boxcox(model1, lambda, optimize=FALSE)
+```
