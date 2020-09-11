@@ -119,7 +119,8 @@ durbinWatsonTest(model1)
 
 ## Lack of Fit Test
 
-We want to fail to reject the null hypothesis, $H_o: \hat{\mu}$
+We want to fail to reject the null hypothesis.
+
 ```
 library(alr3)
 pureErrorAnova(model1)
