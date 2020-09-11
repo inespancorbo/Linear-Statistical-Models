@@ -125,3 +125,8 @@ We want to fail to reject the null hypothesis.
 library(alr3)
 pureErrorAnova(model1)
 ```
+## Transformations on Y: Box Cox Power Transformation
+
+```
+boxcox(model1, lambda, optimize=FALSE)
+```
