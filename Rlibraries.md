@@ -50,6 +50,12 @@ ncvTest(model1)
 durbinWatsonTest(model1)
 ```
 
+**Testing for Constant Variance**
+
+```
+levenTest(model1)
+```
+
 ## library(alr3)
 
 This package consists of data files and a few functions used in the textbook S. Weisberg (2005), 'Applied Linear Regression,' 3rd edition, Wiley. This package depends on the car package. Many functions formerly in alr3 have been renamed and now reside in car.
