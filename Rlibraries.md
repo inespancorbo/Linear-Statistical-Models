@@ -66,6 +66,19 @@ This package consists of data files and a few functions used in the textbook S. 
 pureErrorAnova(model1) # to get a regular anova table just call anova, not in alr3 package
 ```
 
+## library(corrplot)
+
+```
+# plot with correlation coefficients
+corr.matrix <- cor(Data)
+corrplot(cor.matrix)
+```
+
+## library(psych)
+
+```
+pairs.panels(data[,-5], method="pearson", hist.col="darkorchid", density=T)
+```
 ---
 
 # Other
