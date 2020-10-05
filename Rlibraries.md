@@ -147,6 +147,6 @@ pureErrorAnova(model1)
 ## Transformations on Y: Box Cox Power Transformation
 
 ```
-library("EnvStats")
+library(MASS)
 boxcox(model1, lambda, optimize=FALSE)
 ```
