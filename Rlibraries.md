@@ -17,7 +17,7 @@ ggplot(data, aes(x=x)) + geom_boxplot()
 **Examining the predictor variable with a histogram**
 
 ```
-ggplot(data, aes(x=x)) + geom_histogram(aes(y=..desnity..), binwidth=7) + geom_density(alpha=0.2)
+ggplot(data, aes(x=x)) + geom_histogram(aes(y=..density..), binwidth=7) + geom_density(alpha=0.2)
 ```
 
 ## library(olsrr)
